@@ -3,18 +3,18 @@ import matplotlib.pylab as plot
 from numpy import random
 import torch
 import torch.nn as nn
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset
 
 '''
 Dataset: A synthetic data set for linear regression
 Y = w*X + b
 '''
 class Dataset(Dataset):
+    # define parameters of the linear regression to be determined
+    w = math.pi
+    b = -math.exp(1.0)
+    
     def __init__(self, train):
-        # define parameters of the linear regression
-        self.w = math.pi
-        self.b = -math.exp(1.0)
-        
         if train:
             # training set
             self.len = 4000
@@ -39,6 +39,9 @@ class Dataset(Dataset):
         y = self.Y[index]
         return x, y
 
+'''
+Linear Regressor
+'''
 class LinearRegress(nn.Module):
     def __init__(self, in_size, out_size):
         super(LinearRegress, self).__init__()
@@ -49,6 +52,7 @@ class LinearRegress(nn.Module):
         
 
 if __name__ == '__main__':
+    # Initialize random seeds
     torch.manual_seed(0)
     random.seed(0)
     
