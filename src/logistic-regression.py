@@ -2,7 +2,6 @@ import matplotlib.pylab as plot
 import numpy as np
 import torch
 import torch.nn as nn
-from torch.autograd import Variable
 from torch.utils.data import Dataset
 
 '''

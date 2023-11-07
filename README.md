@@ -6,7 +6,7 @@ Examples of machine learning algorithms using pytorch
 - [X] Polynomial regression
 - [X] Multivariate regression
 - [ ] Support vector regression
-- [ ] ANN
+- [X] ANN
 
 ## Classification
 - [ ] K-mean clustering
