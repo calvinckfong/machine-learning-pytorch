@@ -22,5 +22,5 @@ Examples of machine learning algorithms using pytorch
 - [ ] Transformer
 
 ## Computer Vision
-- [ ] Image Classification
+- [X] Image Classification
 - [ ] Object Detection

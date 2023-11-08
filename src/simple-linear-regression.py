@@ -50,6 +50,42 @@ class LinearRegress(nn.Module):
     def forward(self, x):
         return self.linear(x)
         
+    def train_step(self, epoch, train_dataset, optimizer, criterion):
+        model.train()
+        train_loss = 0.0
+        for x, y in train_dataset:
+            optimizer.zero_grad()
+            y_pred = model(x.view(-1,1))
+            loss = criterion(y, y_pred)
+            train_loss += loss.item()
+            loss.backward()
+            optimizer.step()        
+        
+        return train_loss / train_dataset.len
+
+    def validation_step(self, epoch, valid_dataset, plot_prediction):
+        model.eval()
+        x = valid_dataset.X
+        y = valid_dataset.Y    
+        y_pred = model(x.view(-1,1)).squeeze()
+        valid_loss = criterion(y, y_pred).item()
+            
+        if plot_prediction:
+            plot.clf()
+            plot.plot(x, y, 'b.', label='GT')
+            plot.plot(x, y_pred.detach().numpy(), 'r.', label='Prediction')
+            plot.title(f'Epoch = {epoch}')
+            plot.legend()
+            plot.savefig('pred.png')
+        
+        return valid_loss
+
+def plot_loss(train_loss, valid_loss, filename):
+    plot.clf()
+    plot.plot(train_loss, 'b', label='Training')
+    plot.plot(valid_loss, 'r', label='Validation')
+    plot.legend()
+    plot.savefig(filename)
 
 if __name__ == '__main__':
     # Initialize random seeds
@@ -72,23 +108,15 @@ if __name__ == '__main__':
     min_valid_loss = 1.0e10
     for epoch in range(epochs):
         # Training
-        model.train()
-        train_loss = 0.0
-        for x, y in train_dataset:
-            optimizer.zero_grad()
-            y_pred = model(x.view(-1,1))
-            loss = criterion(y, y_pred)
-            train_loss += loss.item()
-            loss.backward()
-            optimizer.step()
+        train_loss = model.train_step(epoch, train_dataset, optimizer, criterion)
         
         # Validation
-        model.eval()
-        valid_loss = 0.0
-        for x, y in valid_dataset:
-            y_pred = model(x.view(-1,1))
-            valid_loss += criterion(y, y_pred).item()
-        
+        valid_loss = model.validation_step(epoch, valid_dataset, (epoch==epochs-1))
+
+        train_loss_list.append(train_loss)
+        valid_loss_list.append(valid_loss)
+        print(f'{epoch=:3d} {train_loss=:.6f} {valid_loss=:.6f} {learningRate=:.6f}')
+
         if valid_loss < min_valid_loss:
             min_valid_loss = valid_loss
             best_param = model.state_dict()
@@ -97,18 +125,16 @@ if __name__ == '__main__':
             learningRate *= 0.6
             for g in optimizer.param_groups:
                 g['lr'] = learningRate
-            
-        train_loss_list.append(train_loss)
-        valid_loss_list.append(valid_loss)
-        print(f'{epoch=:3d} {train_loss=:.6f} {valid_loss=:.6f} {learningRate=:.6f}')
-    
+                        
         # early termination
         if learningRate < 1e-6:
+            print('Early Termination')
+            # Valid and plot the prediction
+            model.validation_step(epoch, valid_dataset, True)
             break
     
-    print(min_valid_loss)
+    print(f'{min_valid_loss=}')
     print(best_param)
     
-    plot.plot(train_loss_list, 'b')
-    plot.plot(valid_loss_list, 'r')
-    plot.savefig('loss.png')
+    plot_loss(train_loss_list, valid_loss_list, 'loss.png')
+    
